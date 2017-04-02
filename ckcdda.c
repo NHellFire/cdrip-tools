@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#ifdef __MINGW32__
+#include <fcntl.h>
+#endif
 
 #define SAMPLES_PER_FRAME  588 /* = 44100 / 75 */
 #define CHECK_RADIUS  (5*SAMPLES_PER_FRAME-1)
@@ -117,10 +120,17 @@ int
 main(int argc, char *argv[])
 {
     /* Reopen stdin as binary */
+#ifndef __MINGW32__
     if (freopen(NULL, "rb", stdin) == NULL) {
         perror("freopen");
         exit(EXIT_FAILURE);
     }
+#else
+    if (_setmode(_fileno(stdin), O_BINARY) == -1) {
+        perror("_setmode");
+        exit(EXIT_FAILURE);
+    }
+#endif
 
     if (argc < 2) {
         fprintf(stderr, "Need at least two arguments\n");
